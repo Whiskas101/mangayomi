@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:mangayomi/modules/manga/archive_reader/models/models.dart';
 import 'package:path/path.dart' as p;
 import 'package:mangayomi/eval/lib.dart';
 import 'package:mangayomi/eval/javascript/http.dart';
@@ -22,15 +23,23 @@ class GetChapterPagesModel {
   Directory? path;
   List<PageUrl> pageUrls = [];
   List<bool> isLocaleList = [];
-  List<Uint8List?> archiveImages = [];
+  List<Uint8List?> archiveImages;
+  List<LocalImage>? localArchiveImages;
+
+  // Optional metadata for storing word boxes
+  List? JsonFiles = [];
   List<UChapDataPreload> uChapDataPreload;
   GetChapterPagesModel({
     required this.path,
     required this.pageUrls,
     required this.isLocaleList,
-    required this.archiveImages,
+    archiveImages,
     required this.uChapDataPreload,
-  });
+    this.localArchiveImages,
+  }) : archiveImages =
+           archiveImages ??
+           localArchiveImages?.map((e) => e.image).toList() ??
+           [];
 }
 
 @riverpod
@@ -38,16 +47,21 @@ Future<GetChapterPagesModel> getChapterPages(
   Ref ref, {
   required Chapter chapter,
 }) async {
+  print("Called getChapbruh");
   List<UChapDataPreload> uChapDataPreloadp = [];
   Directory? path;
   List<PageUrl> pageUrls = [];
   List<bool> isLocaleList = [];
+
+  List<LocalImage> localImages = [];
+
   final settings = isar.settings.getSync(227);
   List<ChapterPageurls>? chapterPageUrlsList =
       settings!.chapterPageUrlsList ?? [];
-  final isarPageUrls = chapterPageUrlsList
-      .where((element) => element.chapterId == chapter.id)
-      .firstOrNull;
+  final isarPageUrls =
+      chapterPageUrlsList
+          .where((element) => element.chapterId == chapter.id)
+          .firstOrNull;
   final incognitoMode = ref.watch(incognitoModeStateProvider);
   final storageProvider = StorageProvider();
   final mangaDirectory = await storageProvider.getMangaMainDirectory(chapter);
@@ -59,10 +73,8 @@ Future<GetChapterPagesModel> getChapterPages(
   List<Uint8List?> archiveImages = [];
   final isLocalArchive = (chapter.archivePath ?? '').isNotEmpty;
   if (!chapter.manga.value!.isLocalArchive!) {
-    final source = getSource(
-      chapter.manga.value!.lang!,
-      chapter.manga.value!.source!,
-    )!;
+    final source =
+        getSource(chapter.manga.value!.lang!, chapter.manga.value!.source!)!;
     if ((isarPageUrls?.urls?.isNotEmpty ?? false) &&
         (isarPageUrls?.chapterUrl ?? chapter.url) == chapter.url) {
       for (var i = 0; i < isarPageUrls!.urls!.length; i++) {
@@ -83,15 +95,19 @@ Future<GetChapterPagesModel> getChapterPages(
           p.join(mangaDirectory!.path, "${chapter.name}.cbz"),
         ).exists() ||
         isLocalArchive) {
-      final path = isLocalArchive
-          ? chapter.archivePath
-          : p.join(mangaDirectory.path, "${chapter.name}.cbz");
+      final path =
+          isLocalArchive
+              ? chapter.archivePath
+              : p.join(mangaDirectory.path, "${chapter.name}.cbz");
+
       final local = await ref.watch(
         getArchiveDataFromFileProvider(path!).future,
       );
+
       for (var image in local.images!) {
         archiveImages.add(image.image!);
         isLocaleList.add(true);
+        localImages.add(image);
       }
     } else {
       for (var i = 0; i < pageUrls.length; i++) {
@@ -100,6 +116,7 @@ Future<GetChapterPagesModel> getChapterPages(
           isLocaleList.add(true);
         } else {
           isLocaleList.add(false);
+          ;
         }
       }
     }
@@ -115,17 +132,19 @@ Future<GetChapterPagesModel> getChapterPages(
           chapterPageUrls.add(chapterPageUrl);
         }
       }
-      final chapterPageHeaders = pageUrls
-          .map((e) => e.headers == null ? null : jsonEncode(e.headers))
-          .toList();
+      final chapterPageHeaders =
+          pageUrls
+              .map((e) => e.headers == null ? null : jsonEncode(e.headers))
+              .toList();
       chapterPageUrls.add(
         ChapterPageurls()
           ..chapterId = chapter.id
           ..urls = pageUrls.map((e) => e.url).toList()
           ..chapterUrl = chapter.url
-          ..headers = chapterPageHeaders.first != null
-              ? chapterPageHeaders.map((e) => e.toString()).toList()
-              : null,
+          ..headers =
+              chapterPageHeaders.first != null
+                  ? chapterPageHeaders.map((e) => e.toString()).toList()
+                  : null,
       );
       isar.writeTxnSync(
         () => isar.settings.putSync(
@@ -142,6 +161,7 @@ Future<GetChapterPagesModel> getChapterPages(
           isLocaleList[i],
           archiveImages[i],
           i,
+          localImage: localImages[i],
           GetChapterPagesModel(
             path: path,
             pageUrls: pageUrls,

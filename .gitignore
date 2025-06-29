@@ -34,7 +34,6 @@ migrate_working_dir/
 .pub/
 /build/
 
-
 # Symbolication related
 app.*.symbols
 
@@ -48,3 +47,6 @@ app.*.map.json
 
 /android/app/.cxx
 untranslated_messages.txt
+
+# FVM Version Cache
+.fvm/

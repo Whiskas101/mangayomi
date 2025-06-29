@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
@@ -79,6 +80,17 @@ _searchForArchiveOnly(Directory dir) async {
   return _listOnly;
 }
 
+bool _isJsonFile(String path) {
+  List<String> imageExtensions = ['.json'];
+  String extension = path.toLowerCase();
+  for (String imageExtension in imageExtensions) {
+    if (extension.endsWith(imageExtension)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool _isImageFile(String path) {
   List<String> imageExtensions = ['.png', '.jpg', '.jpeg'];
   String extension = path.toLowerCase();
@@ -102,31 +114,38 @@ bool _isArchiveFile(String path) {
 }
 
 LocalArchive _extractArchive(String path) {
+  print("called _extractArchive");
   // Folder of images?
   if (Directory(path).existsSync()) {
     final dir = Directory(path);
     final pages =
         dir.listSync().whereType<File>().where((f) => _isImageFile(f.path)).map(
-          (f) {
-            return LocalImage()
-              ..image = f.readAsBytesSync()
-              ..name = p.basename(f.path);
-          },
-        ).toList()..sort((a, b) => a.name!.compareTo(b.name!));
+            (f) {
+              return LocalImage()
+                ..image = f.readAsBytesSync()
+                ..name = p.basename(f.path);
+            },
+          ).toList()
+          ..sort((a, b) => a.name!.compareTo(b.name!));
 
-    final localArchive = LocalArchive()
-      ..path = path
-      ..extensionType = LocalExtensionType.folder
-      ..name = p.basename(path)
-      ..images = pages
-      ..coverImage = pages.first.image;
+    final localArchive =
+        LocalArchive()
+          ..path = path
+          ..extensionType = LocalExtensionType.folder
+          ..name = p.basename(path)
+          ..images = pages
+          ..coverImage = pages.first.image;
 
     return localArchive;
   }
-  final localArchive = LocalArchive()
-    ..path = path
-    ..extensionType = setTypeExtension(p.extension(path).replaceFirst(".", ""))
-    ..name = p.basenameWithoutExtension(path);
+
+  final localArchive =
+      LocalArchive()
+        ..path = path
+        ..extensionType = setTypeExtension(
+          p.extension(path).replaceFirst(".", ""),
+        )
+        ..name = p.basenameWithoutExtension(path);
   Archive? archive;
   final inputStream = InputFileStream(path);
   final extensionType = localArchive.extensionType;
@@ -137,6 +156,27 @@ LocalArchive _extractArchive(String path) {
     archive = ZipDecoder().decodeStream(inputStream);
   }
 
+  // Create a json lookup by filename
+  Map<String, List<WordBox>> wordBoxesLookUp = {};
+  for (final file in archive.files) {
+    final filename = file.name;
+    print("found filename: $filename");
+    if (file.isFile && file.name.endsWith('.json')) {
+      // get the path of this json
+      try {
+        final content = utf8.decode(file.content as List<int>);
+        final decoded = jsonDecode(content);
+        if (decoded is List) {
+          final imageName = p.withoutExtension(filename);
+          final boxes = decoded.map((e) => WordBox.fromJson(e)).toList();
+          wordBoxesLookUp[imageName] = boxes;
+        }
+      } catch (err) {
+        print("Something went wrong parsing the json!: $err");
+      }
+    }
+  }
+
   for (final file in archive.files) {
     final filename = file.name;
     if (file.isFile) {
@@ -145,11 +185,15 @@ LocalArchive _extractArchive(String path) {
         if (filename.contains("cover")) {
           localArchive.coverImage = data;
         } else {
+          String pureName = p.withoutExtension(filename);
+
           localArchive.images!.add(
             LocalImage()
               ..image = data
-              ..name = p.basename(filename),
+              ..name = p.basename(filename)
+              ..wordBoxes = wordBoxesLookUp[pureName] ?? [],
           );
+          print(wordBoxesLookUp[pureName]);
         }
       }
     }
@@ -179,6 +223,7 @@ LocalArchive _extractArchive(String path) {
     p.extension(path).replaceFirst('.', ''),
   );
   final name = p.basenameWithoutExtension(path);
+
   Uint8List? coverImage;
 
   Archive? archive;
@@ -199,14 +244,15 @@ LocalArchive _extractArchive(String path) {
   if (cover.isNotEmpty) {
     coverImage = cover.first.content;
   } else {
-    List<ArchiveFile> lArchive = archive.files
-        .where(
-          (file) =>
-              file.isFile &&
-              _isImageFile(file.name) &&
-              !file.name.contains("cover"),
-        )
-        .toList();
+    List<ArchiveFile> lArchive =
+        archive.files
+            .where(
+              (file) =>
+                  file.isFile &&
+                  (_isImageFile(file.name)) &&
+                  !file.name.contains("cover"),
+            )
+            .toList();
     lArchive.sort((a, b) => a.name.compareTo(b.name));
     coverImage = lArchive.first.content;
   }

@@ -113,46 +113,49 @@ class _VirtualReaderViewState extends ConsumerState<VirtualReaderView> {
     }
     return Stack(
       children: [
-        PhotoViewGallery.builder(
-          itemCount: 1,
-          builder: (_, _) => PhotoViewGalleryPageOptions.customChild(
-            controller: widget.photoViewController,
-            scaleStateController: widget.photoViewScaleStateController,
-            basePosition: widget.scalePosition,
-            onScaleEnd: (context, details, controllerValue) =>
-                widget.onScaleEnd(details),
-            child: VirtualMangaList(
-              pageManager: _pageManager,
-              itemScrollController: widget.itemScrollController,
-              scrollOffsetController: widget.scrollOffsetController,
-              itemPositionsListener: widget.itemPositionsListener,
-              scrollDirection: widget.scrollDirection,
-              minCacheExtent: widget.minCacheExtent,
-              initialScrollIndex: widget.initialScrollIndex,
-              physics: widget.physics,
-              onLongPressData: widget.onLongPressData,
-              onFailedToLoadImage: widget.onFailedToLoadImage,
-              backgroundColor: widget.backgroundColor,
-              isDoublePageMode: widget.isDoublePageMode,
-              isHorizontalContinuous: widget.isHorizontalContinuous,
-              readerMode: widget.readerMode,
-              onDoubleTapDown: widget.onDoubleTapDown,
-              onDoubleTap: widget.onDoubleTap,
-              // Passer les callbacks pour les transitions entre chapitres
-              onChapterChanged: widget.onChapterChanged,
-              onReachedLastPage: widget.onReachedLastPage,
-              onPageChanged: (index) {
-                // Ici on peut ajouter une logique supplémentaire si nécessaire
-                // Par exemple, précaching d'images
-                _pageManager.updateVisibleIndex(index);
-              },
-            ),
-          ),
+        // PhotoViewGallery.builder(
+        // itemCount: 1,
+        // builder: (_, _) {
+        // print("Customchild being called");
+        // return PhotoViewGalleryPageOptions.customChild(
+        // controller: widget.photoViewController,
+        // scaleStateController: widget.photoViewScaleStateController,
+        // basePosition: widget.scalePosition,
+        // onScaleEnd: (context, details, controllerValue) =>
+        // widget.onScaleEnd(details),
+        // child:
+
+        // },
+        VirtualMangaList(
+          pageManager: _pageManager,
+          itemScrollController: widget.itemScrollController,
+          scrollOffsetController: widget.scrollOffsetController,
+          itemPositionsListener: widget.itemPositionsListener,
+          scrollDirection: widget.scrollDirection,
+          minCacheExtent: widget.minCacheExtent,
+          initialScrollIndex: widget.initialScrollIndex,
+          physics: widget.physics,
+          onLongPressData: widget.onLongPressData,
+          onFailedToLoadImage: widget.onFailedToLoadImage,
+          backgroundColor: widget.backgroundColor,
+          isDoublePageMode: widget.isDoublePageMode,
+          isHorizontalContinuous: widget.isHorizontalContinuous,
+          readerMode: widget.readerMode,
+          onDoubleTapDown: widget.onDoubleTapDown,
+          onDoubleTap: widget.onDoubleTap,
+          // Passer les callbacks pour les transitions entre chapitres
+          onChapterChanged: widget.onChapterChanged,
+          onReachedLastPage: widget.onReachedLastPage,
+          onPageChanged: (index) {
+            // Ici on peut ajouter une logique supplémentaire si nécessaire
+            // Par exemple, précaching d'images
+            _pageManager.updateVisibleIndex(index);
+          },
         ),
 
         // Debug info overlay
-        if (widget.showDebugInfo)
-          VirtualPageManagerDebugInfo(pageManager: _pageManager),
+        // if (widget.showDebugInfo)
+        //   VirtualPageManagerDebugInfo(pageManager: _pageManager),
       ],
     );
   }
