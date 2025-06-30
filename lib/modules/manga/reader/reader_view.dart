@@ -694,7 +694,6 @@ class _MangaChapterPageGalleryState
                                           data: _uChapDataPreload[index],
                                         );
                                       }
-
                                       return ImageViewPaged(
                                         data: _uChapDataPreload[index],
                                         loadStateChanged: (state) {
