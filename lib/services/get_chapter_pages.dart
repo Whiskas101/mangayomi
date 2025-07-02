@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:mangayomi/modules/manga/archive_reader/models/models.dart';
 import 'package:path/path.dart' as p;
 import 'package:mangayomi/eval/lib.dart';
@@ -17,6 +18,7 @@ import 'package:mangayomi/utils/reg_exp_matcher.dart';
 import 'package:mangayomi/modules/more/providers/incognito_mode_state_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:win32/win32.dart';
 part 'get_chapter_pages.g.dart';
 
 class GetChapterPagesModel {
@@ -47,7 +49,6 @@ Future<GetChapterPagesModel> getChapterPages(
   Ref ref, {
   required Chapter chapter,
 }) async {
-  print("Called getChapbruh");
   List<UChapDataPreload> uChapDataPreloadp = [];
   Directory? path;
   List<PageUrl> pageUrls = [];
@@ -91,6 +92,7 @@ Future<GetChapterPagesModel> getChapterPages(
   }
 
   if (pageUrls.isNotEmpty || isLocalArchive) {
+    print("Local flow is on!! ${isLocalArchive}");
     if (await File(
           p.join(mangaDirectory!.path, "${chapter.name}.cbz"),
         ).exists() ||
@@ -152,7 +154,12 @@ Future<GetChapterPagesModel> getChapterPages(
         ),
       );
     }
+
     for (var i = 0; i < pageUrls.length; i++) {
+      print("$chapter || $path || ${pageUrls[i]}");
+
+      final hasLocalImage = (chapter.archivePath ?? '').isNotEmpty;
+      final localImage = hasLocalImage ? localImages[i] : null;
       uChapDataPreloadp.add(
         UChapDataPreload(
           chapter,
@@ -161,7 +168,8 @@ Future<GetChapterPagesModel> getChapterPages(
           isLocaleList[i],
           archiveImages[i],
           i,
-          localImage: localImages[i],
+
+          localImage: localImage,
           GetChapterPagesModel(
             path: path,
             pageUrls: pageUrls,

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:mangayomi/modules/manga/archive_reader/models/models.dart';
 import 'package:mangayomi/modules/manga/reader/providers/reader_controller_provider.dart';
 import 'package:mangayomi/modules/manga/reader/reader_view.dart';
@@ -38,6 +41,7 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
   final GlobalKey _imageKey = GlobalKey();
   Size? _renderedSize;
   Size? _originalImageSize;
+  List<WordBox>? _wordBoxes;
 
   Future<Size> getImageSizeFromBytes(Uint8List bytes) async {
     final codec = await ui.instantiateImageCodec(bytes);
@@ -46,42 +50,86 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
     return Size(image.width.toDouble(), image.height.toDouble());
   }
 
+  Future<List<WordBox>> fetchBoundingBoxJson() async {
+    // remove the ending section of the string .png etc and replace with
+    // json to fetch metadata about wordboxes
+    final uri = Uri.parse(widget.data.pageUrl!.url);
+    final segments = [...uri.pathSegments];
+    if (segments.isEmpty) return [];
+
+    final last = segments.removeLast();
+    final dotIndex = last.lastIndexOf('.');
+
+    final newFileName =
+        '${dotIndex == -1 ? last : last.substring(0, dotIndex)}.json';
+
+    segments.add(newFileName);
+    final newUri = uri.replace(pathSegments: segments);
+    // print(newUri);
+
+    final response = await http.get(newUri);
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonArr = jsonDecode(response.body);
+      final wordBoxes = jsonArr.map((e) => WordBox.fromJson(e)).toList();
+      return wordBoxes;
+    }
+
+    return [];
+  }
+
   @override
   void initState() {
     super.initState();
 
-    final bytes = widget.data.localImage?.image;
-    if (bytes != null) {
-      getImageSizeFromBytes(bytes).then((size) {
-        if (mounted) {
-          setState(() {
-            _originalImageSize = size;
-          });
-          debugPrint("Original image size: $size");
-        }
-      });
+    widget.data.getImageBytes.then((bytes) {
+      if (bytes != null) {
+        getImageSizeFromBytes(bytes).then((size) {
+          if (mounted) {
+            setState(() {
+              _originalImageSize = size;
+            });
+            debugPrint("Original image size: $size");
+          }
+        });
+      }
+    });
 
-      // Delay to after layout is complete
-      // WidgetsBinding.instance.addPostFrameCallback((_) {
-      //   final context = _imageKey.currentContext;
-      //   if (context != null && mounted) {
-      //     final renderBox = context.findRenderObject() as RenderBox?;
-      //     if (renderBox != null && renderBox.hasSize) {
-      //       setState(() {
-      //         _renderedSize = renderBox.size;
-      //       });
-      //       debugPrint("Rendered image size: $_renderedSize");
-      //     }
-      //   }
-      // });
+    var bytes;
+    if (widget.data.localImage != null) {
+      _wordBoxes = widget.data.localImage?.wordBoxes ?? [];
+      print("Local Image present!");
+    } else if (widget.data.pageUrl != null) {
+      if (_wordBoxes == null) {
+        fetchBoundingBoxJson().then((boxes) {
+          setState(() {
+            _wordBoxes = boxes;
+          });
+        });
+      }
     }
+
+    print('data in widget::: ${widget.data}');
+
+    // Delay to after layout is complete
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   final context = _imageKey.currentContext;
+    //   if (context != null && mounted) {
+    //     final renderBox = context.findRenderObject() as RenderBox?;
+    //     if (renderBox != null && renderBox.hasSize) {
+    //       setState(() {
+    //         _renderedSize = renderBox.size;
+    //       });
+    //       debugPrint("Rendered image size: $_renderedSize");
+    //     }
+    //   }
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
     final scaleType = ref.watch(scaleTypeStateProvider);
     final image = widget.data.getImageProvider(ref, true);
-    final wordBoxes = widget.data.localImage?.wordBoxes;
+
     final (colorBlendMode, color) = chapterColorFIlterValues(context, ref);
 
     return GestureDetector(
@@ -111,7 +159,7 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
               onDoubleTap: widget.onDoubleTap,
             ),
           ),
-          if (wordBoxes != null &&
+          if (_wordBoxes != null &&
               _renderedSize != null &&
               _originalImageSize != null)
             Positioned(
@@ -128,7 +176,7 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
                   child: WordBoxOverlay(
                     renderedSize: _renderedSize!,
                     originalSize: _originalImageSize!,
-                    wordBoxes: [...wordBoxes],
+                    wordBoxes: [..._wordBoxes!],
                     onWordTap: (word) => print("Tapped word $word"),
                   ),
                 ),
@@ -155,10 +203,10 @@ class MeasureSize extends SingleChildRenderObjectWidget {
   final OnSizeChanged onSizeChanged;
 
   const MeasureSize({
-    Key? key,
-    required Widget child,
+    super.key,
+    required Widget super.child,
     required this.onSizeChanged,
-  }) : super(key: key, child: child);
+  });
 
   @override
   RenderObject createRenderObject(BuildContext context) {
