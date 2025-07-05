@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.10.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 885218533;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1773449624;
 
 // Section: executor
 
@@ -251,6 +251,39 @@ fn wire__crate__api__rhttp__client__create_static_resolver_sync_impl(
         },
     )
 }
+fn wire__crate__api__tokenizer_wrapper__get_rust_cwd_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "get_rust_cwd",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok =
+                        Result::<_, ()>::Ok(crate::api::tokenizer_wrapper::get_rust_cwd())?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__rhttp__http__make_http_request_receive_stream_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -374,6 +407,41 @@ fn wire__crate__api__rhttp__http__register_client_sync_impl(
                 let output_ok = crate::api::rhttp::http::register_client_sync(api_settings)?;
                 Ok(output_ok)
             })())
+        },
+    )
+}
+fn wire__crate__api__tokenizer_wrapper__tokenize_text_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "tokenize_text",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_input = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, crate::api::tokenizer_wrapper::TokenizerError>(
+                    (move || {
+                        let output_ok = crate::api::tokenizer_wrapper::tokenize_text(api_input)?;
+                        Ok(output_ok)
+                    })(),
+                )
+            }
         },
     )
 }
@@ -896,6 +964,20 @@ impl SseDecode for Vec<(String, String)> {
     }
 }
 
+impl SseDecode for Vec<crate::api::tokenizer_wrapper::TokenData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::tokenizer_wrapper::TokenData>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Option<RustAutoOpaqueMoi<RequestClient>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1244,6 +1326,39 @@ impl SseDecode for crate::api::rhttp::client::TlsVersion {
     }
 }
 
+impl SseDecode for crate::api::tokenizer_wrapper::TokenData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_surface = <String>::sse_decode(deserializer);
+        let mut var_dictionaryForm = <String>::sse_decode(deserializer);
+        let mut var_normalizedForm = <String>::sse_decode(deserializer);
+        let mut var_readingForm = <String>::sse_decode(deserializer);
+        let mut var_pos = <Vec<String>>::sse_decode(deserializer);
+        let mut var_isOov = <bool>::sse_decode(deserializer);
+        return crate::api::tokenizer_wrapper::TokenData {
+            surface: var_surface,
+            dictionary_form: var_dictionaryForm,
+            normalized_form: var_normalizedForm,
+            reading_form: var_readingForm,
+            pos: var_pos,
+            is_oov: var_isOov,
+        };
+    }
+}
+
+impl SseDecode for crate::api::tokenizer_wrapper::TokenizerError {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::tokenizer_wrapper::TokenizerError::ConfigError,
+            1 => crate::api::tokenizer_wrapper::TokenizerError::DictLoadError,
+            2 => crate::api::tokenizer_wrapper::TokenizerError::TokenizeError,
+            _ => unreachable!("Invalid variant for TokenizerError: {}", inner),
+        };
+    }
+}
+
 impl SseDecode for u16 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1292,13 +1407,27 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        7 => wire__crate__api__rhttp__http__make_http_request_receive_stream_impl(
+        7 => wire__crate__api__tokenizer_wrapper__get_rust_cwd_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__api__rhttp__http__register_client_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__rhttp__http__make_http_request_receive_stream_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        10 => {
+            wire__crate__api__rhttp__http__register_client_impl(port, ptr, rust_vec_len, data_len)
+        }
+        12 => wire__crate__api__tokenizer_wrapper__tokenize_text_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         _ => unreachable!(),
     }
 }
@@ -1321,8 +1450,8 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        8 => wire__crate__api__image__process_crop_image_impl(ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__rhttp__http__register_client_sync_impl(ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__image__process_crop_image_impl(ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__rhttp__http__register_client_sync_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1772,6 +1901,53 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::rhttp::client::TlsVersion>
         self
     }
 }
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::tokenizer_wrapper::TokenData {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.surface.into_into_dart().into_dart(),
+            self.dictionary_form.into_into_dart().into_dart(),
+            self.normalized_form.into_into_dart().into_dart(),
+            self.reading_form.into_into_dart().into_dart(),
+            self.pos.into_into_dart().into_dart(),
+            self.is_oov.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::tokenizer_wrapper::TokenData
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::tokenizer_wrapper::TokenData>
+    for crate::api::tokenizer_wrapper::TokenData
+{
+    fn into_into_dart(self) -> crate::api::tokenizer_wrapper::TokenData {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::tokenizer_wrapper::TokenizerError {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::ConfigError => 0.into_dart(),
+            Self::DictLoadError => 1.into_dart(),
+            Self::TokenizeError => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::tokenizer_wrapper::TokenizerError
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::tokenizer_wrapper::TokenizerError>
+    for crate::api::tokenizer_wrapper::TokenizerError
+{
+    fn into_into_dart(self) -> crate::api::tokenizer_wrapper::TokenizerError {
+        self
+    }
+}
 
 impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2107,6 +2283,16 @@ impl SseEncode for Vec<(String, String)> {
     }
 }
 
+impl SseEncode for Vec<crate::api::tokenizer_wrapper::TokenData> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::tokenizer_wrapper::TokenData>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<RustAutoOpaqueMoi<RequestClient>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2400,6 +2586,35 @@ impl SseEncode for crate::api::rhttp::client::TlsVersion {
             match self {
                 crate::api::rhttp::client::TlsVersion::Tls1_2 => 0,
                 crate::api::rhttp::client::TlsVersion::Tls1_3 => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::tokenizer_wrapper::TokenData {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.surface, serializer);
+        <String>::sse_encode(self.dictionary_form, serializer);
+        <String>::sse_encode(self.normalized_form, serializer);
+        <String>::sse_encode(self.reading_form, serializer);
+        <Vec<String>>::sse_encode(self.pos, serializer);
+        <bool>::sse_encode(self.is_oov, serializer);
+    }
+}
+
+impl SseEncode for crate::api::tokenizer_wrapper::TokenizerError {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::tokenizer_wrapper::TokenizerError::ConfigError => 0,
+                crate::api::tokenizer_wrapper::TokenizerError::DictLoadError => 1,
+                crate::api::tokenizer_wrapper::TokenizerError::TokenizeError => 2,
                 _ => {
                     unimplemented!("");
                 }

@@ -92,6 +92,7 @@ dependencies:
       url: https://github.com/kodjodevf/epubx.dart.git
       ref: dev
   d4rt: 0.0.8
+  ruby_text: ^3.0.3
 
 dependency_overrides:
   ffi: ^2.1.3

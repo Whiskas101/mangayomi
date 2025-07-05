@@ -10,6 +10,7 @@ import 'package:mangayomi/modules/manga/reader/reader_view.dart';
 import 'package:mangayomi/modules/manga/reader/widgets/color_filter_widget.dart';
 import 'package:mangayomi/modules/manga/reader/widgets/word_box.dart';
 import 'package:mangayomi/modules/more/settings/reader/providers/reader_state_provider.dart';
+import 'package:mangayomi/src/rust/api/tokenizer_wrapper.dart';
 import 'package:mangayomi/utils/extensions/others.dart';
 
 import 'dart:typed_data';
@@ -177,7 +178,11 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
                     renderedSize: _renderedSize!,
                     originalSize: _originalImageSize!,
                     wordBoxes: [..._wordBoxes!],
-                    onWordTap: (word) => print("Tapped word $word"),
+                    onWordTap: (word) async {
+                      List<TokenData> res = await tokenizeText(input: word);
+                      // String res = await getRustCwd();
+                      print("cwd: ${res[0].surface}");
+                    },
                   ),
                 ),
               ),
