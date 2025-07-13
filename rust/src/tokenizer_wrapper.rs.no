@@ -76,9 +76,9 @@ fn log_cwd_to_file(log: String) {
         .append(true)
         .open(path)
         .unwrap_or_else(|_| panic!("Failed to open log file"));
-
     match env::current_dir() {
         Ok(cwd) => {
+            print!("writing to {}", cwd.to_string_lossy());
             writeln!(file, "{:?} || {}", cwd, log).ok();
         }
         Err(e) => {
@@ -93,7 +93,7 @@ fn get_log_path() -> PathBuf {
         PathBuf::from("/data/data/com.your.package.name/files/rust_log.txt")
     } else {
         // Desktop/dev fallback
-        PathBuf::from("rust_log.txt")
+        PathBuf::from("rust_log_2.txt")
     }
 }
 
@@ -135,14 +135,19 @@ fn extract_tokens(
 
 #[frb]
 pub fn init_tokenizer(config_path: String) -> Result<(), TokenizerError> {
+    println!("Init tokenizer called");
     if GLOBAL_DICT.get().is_some() {
         return Ok(());
     }
+    println!("Init tokenizer new init start");
+    // let path = Path::new("C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src\\resources\\sudachi.json");
     let path = Path::new(&config_path);
     log_cwd_to_file(path.to_string_lossy().into());
 
     let config_builder = ConfigBuilder::from_file(path).map_err(|_| TokenizerError::ConfigError)?;
+    println!("Building config!");
     let config = config_builder.build();
+    println!("Config ready!");
     let dict = JapaneseDictionary::from_cfg(&config).map_err(|_| TokenizerError::DictLoadError)?;
 
     GLOBAL_DICT
@@ -153,7 +158,6 @@ pub fn init_tokenizer(config_path: String) -> Result<(), TokenizerError> {
 
 pub fn tokenize_text(input: String) -> Result<Vec<TokenData>, TokenizerError> {
     // Currently hardcoded but because i dont think this is something i'll ever need to change
-    // log_cwd_to_file();
     // init_tokenizer("resources\\sudachi.json".into());
     let dict = GLOBAL_DICT
         .get()
@@ -164,6 +168,8 @@ pub fn tokenize_text(input: String) -> Result<Vec<TokenData>, TokenizerError> {
     let morpheme_list = tokenizer
         .tokenize(&input, Mode::B, true)
         .map_err(|_| TokenizerError::TokenizeError)?;
+
+    println!("Found {} tokens", morpheme_list.len());
 
     Ok(extract_tokens(morpheme_list, &*dict))
 }
@@ -193,16 +199,18 @@ fn lookup_glosses(lemma: &str) -> Vec<String> {
 
 #[frb]
 pub fn lookup_sentence(input: String) -> Vec<ResultToken> {
+    print!("Called lookup!");
     // just returns the fattest json that can be made out of all information
     // extracted out of this set of tokens
 
     // TODO: Optimize this slow ahh search
     // currently doing a raw linear search for every query
     // prioritising working version before fast version fr
-    //
 
     let tokens = tokenize_text(input).unwrap();
-
+    for i in &tokens {
+        println!("dicform: {}", i.dictionary_form);
+    }
     let result: Vec<ResultToken> = tokens
         .into_iter()
         .map(|t| {

@@ -108,6 +108,45 @@ class WordBoxOverlay extends StatefulWidget {
 class _WordBoxOverlayState extends State<WordBoxOverlay> {
   WordBox? selectedBox;
 
+  // for the dictionary look up
+  OverlayEntry? _popupEntry;
+
+  void showPopup(BuildContext context, Offset position, Widget child) {
+    // in case its already shown
+    hidePopup();
+    final overlay = Overlay.of(context);
+
+    _popupEntry = OverlayEntry(
+      builder:
+          (context) => Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: hidePopup,
+                ),
+              ),
+              Positioned(
+                left: position.dx,
+                top: position.dy,
+                child: Material(
+                  elevation: 4.0,
+                  borderRadius: BorderRadius.circular(12),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
+    );
+
+    overlay.insert(_popupEntry!);
+  }
+
+  void hidePopup() {
+    _popupEntry?.remove();
+    _popupEntry = null;
+  }
+
   WordBox? findTappedWordBox(List<WordBox> boxes, Offset tapPosition) {
     for (final box in boxes) {
       if (box.boundingBox.contains(tapPosition)) {
@@ -133,6 +172,11 @@ class _WordBoxOverlayState extends State<WordBoxOverlay> {
             selectedBox = tapped;
           });
           widget.onWordTap?.call(tapped.word);
+          showPopup(
+            context,
+            details.localPosition,
+            Container(child: Text(tapped.word)),
+          );
         }
       },
       child: CustomPaint(

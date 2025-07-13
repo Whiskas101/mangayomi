@@ -24,6 +24,7 @@ import 'package:mangayomi/modules/more/settings/appearance/providers/theme_mode_
 import 'package:mangayomi/l10n/generated/app_localizations.dart';
 import 'package:mangayomi/services/http/m_client.dart';
 import 'package:mangayomi/src/rust/frb_generated.dart';
+import 'package:mangayomi/utils/dictionary_locator.dart';
 import 'package:mangayomi/utils/url_protocol/api.dart';
 import 'package:mangayomi/modules/more/settings/appearance/providers/theme_provider.dart';
 import 'package:mangayomi/modules/library/providers/file_scanner.dart';
@@ -83,7 +84,12 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     initializeDateFormatting();
+
     _initDeepLinks();
+
+    // provide the rust side sudachi with the paths needed to init tokenizer
+    setupSudachiDic();
+
     unawaited(ref.read(scanLocalLibraryProvider.future));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,9 +105,10 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     final followSystem = ref.watch(followSystemThemeStateProvider);
     final forcedDark = ref.watch(themeModeStateProvider);
-    final themeMode = followSystem
-        ? ThemeMode.system
-        : (forcedDark ? ThemeMode.dark : ThemeMode.light);
+    final themeMode =
+        followSystem
+            ? ThemeMode.system
+            : (forcedDark ? ThemeMode.dark : ThemeMode.light);
     final locale = ref.watch(l10nLocaleStateProvider);
     final router = ref.watch(routerProvider);
 

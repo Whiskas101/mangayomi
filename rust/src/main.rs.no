@@ -1,0 +1,18 @@
+mod tokenizer_wrapper;
+
+fn main() {
+    println!("yo? no way");
+    let _ = tokenizer_wrapper::init_tokenizer("C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src\\resources\\sudachi.json".into());
+    let res = tokenizer_wrapper::lookup_sentence("のお尻に鉄のロッドを入れてほしい".into());
+
+    println!("lol: {}", res.len());
+    for i in res {
+        println!("{}", i.dictionary_form);
+        println!("{}", i.reading_form);
+        println!("Glosses: ");
+        for j in i.glosses {
+            println!("  -{}", j);
+        }
+        println!("\n");
+    }
+}

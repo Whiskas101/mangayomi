@@ -236,6 +236,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
 
   @protected
+  List<ResultToken> dco_decode_list_result_token(dynamic raw);
+
+  @protected
   List<TokenData> dco_decode_list_token_data(dynamic raw);
 
   @protected
@@ -300,6 +303,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RedirectSettings dco_decode_redirect_settings(dynamic raw);
+
+  @protected
+  ResultToken dco_decode_result_token(dynamic raw);
 
   @protected
   RhttpError dco_decode_rhttp_error(dynamic raw);
@@ -532,6 +538,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<ResultToken> sse_decode_list_result_token(SseDeserializer deserializer);
+
+  @protected
   List<TokenData> sse_decode_list_token_data(SseDeserializer deserializer);
 
   @protected
@@ -620,6 +629,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RedirectSettings sse_decode_redirect_settings(SseDeserializer deserializer);
+
+  @protected
+  ResultToken sse_decode_result_token(SseDeserializer deserializer);
 
   @protected
   RhttpError sse_decode_rhttp_error(SseDeserializer deserializer);
@@ -932,6 +944,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_result_token(
+    List<ResultToken> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_token_data(
     List<TokenData> self,
     SseSerializer serializer,
@@ -1046,6 +1064,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     RedirectSettings self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_result_token(ResultToken self, SseSerializer serializer);
 
   @protected
   void sse_encode_rhttp_error(RhttpError self, SseSerializer serializer);

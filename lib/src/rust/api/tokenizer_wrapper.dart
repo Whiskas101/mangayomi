@@ -6,14 +6,67 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `extract_tokens`, `get_log_path`, `log_cwd_to_file`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `extract_tokens`, `get_log_path`, `log_cwd_to_file`, `lookup_glosses`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `fmt`
 
 Future<String> getRustCwd() =>
     RustLib.instance.api.crateApiTokenizerWrapperGetRustCwd();
 
+Future<void> initTokenizer({required String configPath}) => RustLib.instance.api
+    .crateApiTokenizerWrapperInitTokenizer(configPath: configPath);
+
 Future<List<TokenData>> tokenizeText({required String input}) =>
     RustLib.instance.api.crateApiTokenizerWrapperTokenizeText(input: input);
+
+Future<List<ResultToken>> lookupSentence({required String input}) =>
+    RustLib.instance.api.crateApiTokenizerWrapperLookupSentence(input: input);
+
+class ResultToken {
+  final String surface;
+  final String dictionaryForm;
+  final String normalizedForm;
+  final String readingForm;
+  final List<String> pos;
+  final bool isOov;
+  final List<String> glosses;
+  final bool matchFound;
+
+  const ResultToken({
+    required this.surface,
+    required this.dictionaryForm,
+    required this.normalizedForm,
+    required this.readingForm,
+    required this.pos,
+    required this.isOov,
+    required this.glosses,
+    required this.matchFound,
+  });
+
+  @override
+  int get hashCode =>
+      surface.hashCode ^
+      dictionaryForm.hashCode ^
+      normalizedForm.hashCode ^
+      readingForm.hashCode ^
+      pos.hashCode ^
+      isOov.hashCode ^
+      glosses.hashCode ^
+      matchFound.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ResultToken &&
+          runtimeType == other.runtimeType &&
+          surface == other.surface &&
+          dictionaryForm == other.dictionaryForm &&
+          normalizedForm == other.normalizedForm &&
+          readingForm == other.readingForm &&
+          pos == other.pos &&
+          isOov == other.isOov &&
+          glosses == other.glosses &&
+          matchFound == other.matchFound;
+}
 
 class TokenData {
   final String surface;

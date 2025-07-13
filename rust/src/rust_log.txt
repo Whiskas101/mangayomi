@@ -1,0 +1,12 @@
+Current working directory: "C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src"
+Current working directory: "C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src"
+Current working directory: "C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src"
+Current working directory: "C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src"
+Current working directory: "C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src"
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || src\resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || src\resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || src\resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || src\resources\sudachi.json
+"C:\\Users\\Admin\\Desktop\\baggage\\Projects\\mangayomi\\rust\\src" || src\resources\sudachi.json

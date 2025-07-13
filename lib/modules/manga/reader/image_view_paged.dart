@@ -45,6 +45,13 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
   List<WordBox>? _wordBoxes;
 
   Future<Size> getImageSizeFromBytes(Uint8List bytes) async {
+    // Doesnt work as expected, crops are difficult to incorporate.
+    // if (widget.data.cropImage != null) {
+    //   bytes = widget.data.cropImage!;
+    // }
+    // if (widget.data.archiveImage != null) {
+    //   bytes = widget.data.archiveImage!;
+    // }
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
     final image = frame.image;
@@ -146,18 +153,20 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
                 });
               }
             },
-            child: ExtendedImage(
-              key: _imageKey,
-              image: image,
-              colorBlendMode: colorBlendMode,
-              color: color,
-              fit: getBoxFit(scaleType),
-              filterQuality: FilterQuality.medium,
-              mode: ExtendedImageMode.gesture,
-              handleLoadingProgress: true,
-              loadStateChanged: widget.loadStateChanged,
-              initGestureConfigHandler: widget.initGestureConfigHandler,
-              onDoubleTap: widget.onDoubleTap,
+            child: Center(
+              child: ExtendedImage(
+                key: _imageKey,
+                image: image,
+                colorBlendMode: colorBlendMode,
+                color: color,
+                fit: getBoxFit(scaleType),
+                filterQuality: FilterQuality.medium,
+                mode: ExtendedImageMode.gesture,
+                handleLoadingProgress: true,
+                loadStateChanged: widget.loadStateChanged,
+                initGestureConfigHandler: widget.initGestureConfigHandler,
+                onDoubleTap: widget.onDoubleTap,
+              ),
             ),
           ),
           if (_wordBoxes != null &&
@@ -179,9 +188,19 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
                     originalSize: _originalImageSize!,
                     wordBoxes: [..._wordBoxes!],
                     onWordTap: (word) async {
-                      List<TokenData> res = await tokenizeText(input: word);
+                      List<ResultToken> res = await lookupSentence(input: word);
                       // String res = await getRustCwd();
-                      print("cwd: ${res[0].surface}");
+                      print("cwd: ${word}");
+                      for (final ResultToken item in res) {
+                        print(item.readingForm);
+                        print(item.dictionaryForm);
+                        print(item.normalizedForm);
+                        print(item.pos);
+                        for (final x in item.glosses) {
+                          print("   -${x}");
+                        }
+                        print("\n--");
+                      }
                     },
                   ),
                 ),
