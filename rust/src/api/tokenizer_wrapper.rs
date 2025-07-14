@@ -66,6 +66,7 @@ pub struct ResultToken {
     // Additional information
     pub glosses: Vec<String>,
     pub match_found: bool,
+    // pub dict_readings: Vec<String>,
 }
 
 fn log_cwd_to_file(log: String) {
@@ -162,7 +163,7 @@ pub fn tokenize_text(input: String) -> Result<Vec<TokenData>, TokenizerError> {
         .map_err(|_| TokenizerError::DictLoadError)?;
     let tokenizer = StatelessTokenizer::new(&*dict);
     let morpheme_list = tokenizer
-        .tokenize(&input, Mode::B, true)
+        .tokenize(&input, Mode::B, false)
         .map_err(|_| TokenizerError::TokenizeError)?;
 
     Ok(extract_tokens(morpheme_list, &*dict))
@@ -175,7 +176,7 @@ fn lookup_glosses(lemma: &str) -> Vec<String> {
     let mut results: Vec<String> = Vec::new();
 
     for entry in jmdict::entries() {
-        let matched = entry.kanji_elements().any(|r| r.text == lemma)
+        let matched = entry.kanji_elements().any(|k| k.text == lemma)
             || entry.reading_elements().any(|r| r.text == lemma);
 
         if matched {

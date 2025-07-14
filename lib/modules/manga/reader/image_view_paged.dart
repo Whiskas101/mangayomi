@@ -133,6 +133,10 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
     // });
   }
 
+  Future<List<ResultToken>> getDictionaryLookup(String sentence) async {
+    return await lookupSentence(input: sentence);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaleType = ref.watch(scaleTypeStateProvider);
@@ -177,33 +181,11 @@ class _ImageViewPagedState extends ConsumerState<ImageViewPaged> {
               top: 0,
               width: _renderedSize!.width,
               height: _renderedSize!.height,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTapDown:
-                    (details) => print("TapDown: ${details.localPosition}"),
-                onTapUp: (details) => print("TapUp: ${details.localPosition}"),
-                child: SizedBox.expand(
-                  child: WordBoxOverlay(
-                    renderedSize: _renderedSize!,
-                    originalSize: _originalImageSize!,
-                    wordBoxes: [..._wordBoxes!],
-                    onWordTap: (word) async {
-                      List<ResultToken> res = await lookupSentence(input: word);
-                      // String res = await getRustCwd();
-                      print("cwd: ${word}");
-                      for (final ResultToken item in res) {
-                        print(item.readingForm);
-                        print(item.dictionaryForm);
-                        print(item.normalizedForm);
-                        print(item.pos);
-                        for (final x in item.glosses) {
-                          print("   -${x}");
-                        }
-                        print("\n--");
-                      }
-                    },
-                  ),
-                ),
+              child: WordBoxOverlay(
+                renderedSize: _renderedSize!,
+                originalSize: _originalImageSize!,
+                wordBoxes: [..._wordBoxes!],
+                onWordTap: getDictionaryLookup,
               ),
             ),
 

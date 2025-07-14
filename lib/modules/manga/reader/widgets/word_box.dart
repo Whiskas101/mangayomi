@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mangayomi/modules/manga/archive_reader/models/models.dart';
+import 'package:mangayomi/src/rust/api/tokenizer_wrapper.dart';
 
 class WordBoxPainter extends CustomPainter {
   final List<WordBox> wordBoxes;
@@ -111,10 +112,25 @@ class _WordBoxOverlayState extends State<WordBoxOverlay> {
   // for the dictionary look up
   OverlayEntry? _popupEntry;
 
-  void showPopup(BuildContext context, Offset position, Widget child) {
+  void showPopup(
+    BuildContext context,
+    BoxConstraints constraints,
+    position,
+    Widget child,
+  ) {
     // in case its already shown
     hidePopup();
     final overlay = Overlay.of(context);
+
+    final width = constraints.maxWidth;
+    final height = constraints.maxHeight;
+
+    // adjust for the height and width of the box
+    final mX = width - 300.0;
+    final mY = height - 200.0;
+
+    // clamp the possible locations
+    final pos = Offset(position.dx.clamp(0, mX), position.dy.clamp(0, mY));
 
     _popupEntry = OverlayEntry(
       builder:
@@ -123,12 +139,15 @@ class _WordBoxOverlayState extends State<WordBoxOverlay> {
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: hidePopup,
+                  onTapDown: (details) {
+                    hidePopup();
+                    print("Hiding popup");
+                  },
                 ),
               ),
               Positioned(
-                left: position.dx,
-                top: position.dy,
+                left: pos.dx,
+                top: pos.dy,
                 child: Material(
                   elevation: 4.0,
                   borderRadius: BorderRadius.circular(12),
@@ -158,33 +177,124 @@ class _WordBoxOverlayState extends State<WordBoxOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onDoubleTapDown: (details) {
-        // print(" this shit tapped");
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          onDoubleTapDown: (details) {
+            // print(" this shit tapped");
 
-        final tapped = findTappedWordBox(
-          widget.transformWordBoxes(widget.wordBoxes),
-          details.localPosition,
+            final tapped = findTappedWordBox(
+              widget.transformWordBoxes(widget.wordBoxes),
+              details.localPosition,
+            );
+
+            if (tapped != null) {
+              setState(() {
+                selectedBox = tapped;
+              });
+              showPopup(
+                context,
+                constraints,
+                details.localPosition,
+                LookUpBox(sentence: tapped.word),
+              );
+            }
+          },
+          child: CustomPaint(
+            painter: WordBoxPainter(
+              widget.transformWordBoxes(widget.wordBoxes),
+              selectedBox,
+            ),
+            size: Size.infinite,
+          ),
         );
-
-        if (tapped != null) {
-          setState(() {
-            selectedBox = tapped;
-          });
-          widget.onWordTap?.call(tapped.word);
-          showPopup(
-            context,
-            details.localPosition,
-            Container(child: Text(tapped.word)),
-          );
-        }
       },
-      child: CustomPaint(
-        painter: WordBoxPainter(
-          widget.transformWordBoxes(widget.wordBoxes),
-          selectedBox,
-        ),
-        size: Size.infinite,
+    );
+  }
+}
+
+// The box that shows up when double tapping a OCR'rd line
+class LookUpBox extends StatefulWidget {
+  final String sentence;
+  const LookUpBox({required this.sentence, super.key});
+
+  @override
+  State<LookUpBox> createState() => _LookUpBoxState();
+}
+
+class _LookUpBoxState extends State<LookUpBox> {
+  List<ResultToken> resultTokens = [];
+  Future<void> getDictionaryLookup(String sentence) async {
+    final List<ResultToken> _resultTokens = await lookupSentence(
+      input: sentence,
+    );
+    // // for (final ResultToken token in _resultTokens) {
+    // //   print("Item: ${token.dictionaryForm}");
+    // //   print("Found ${token.glosses.length} meanings");
+    // //   for (final x in token.glosses) {
+    // //     print(x);
+    // //   }
+    // }
+
+    setState(() {
+      resultTokens = _resultTokens;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getDictionaryLookup(widget.sentence);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (resultTokens.isEmpty) {
+      return Container();
+    }
+    return Container(
+      height: 200.0,
+      width: 300.0,
+      padding: EdgeInsets.fromLTRB(0, 4.0, 0, 0),
+      decoration: BoxDecoration(color: Colors.white24),
+
+      child: ListView.builder(
+        itemCount: resultTokens.length,
+        itemBuilder: (context, index) {
+          final ResultToken token = resultTokens[index];
+          // return ListTile(
+          //   title: Column(
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: [
+          //       Text("${token.dictionaryForm}"),
+          //       Text("${token.readingForm}"),
+          //     ],
+          //   ),
+          // );
+
+          final POSSTRINGS = token.pos.join(" ");
+
+          return ExpansionTile(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  token.dictionaryForm,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                token.isOov
+                    ? Container(width: 5, height: 5, color: Colors.red)
+                    : Container(),
+              ],
+            ),
+            subtitle: Text("${token.readingForm} | $POSSTRINGS"),
+            children:
+                token.glosses
+                    .map((gloss) => ListTile(title: Text(gloss), dense: true))
+                    .toList(),
+          );
+        },
       ),
     );
   }
