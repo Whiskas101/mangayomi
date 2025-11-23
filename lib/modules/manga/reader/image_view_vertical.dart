@@ -1,6 +1,7 @@
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mangayomi/modules/manga/reader/overlay_extended_image.dart';
 import 'package:mangayomi/modules/manga/reader/providers/reader_controller_provider.dart';
 import 'package:mangayomi/modules/manga/reader/u_chap_data_preload.dart';
 import 'package:mangayomi/modules/manga/reader/widgets/color_filter_widget.dart';
@@ -28,7 +29,8 @@ class ImageViewVertical extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final (colorBlendMode, color) = chapterColorFIlterValues(context, ref);
-    final imageWidget = ExtendedImage(
+    final imageWidget = OverlayExtendedImage(
+      pageUrl: data.pageUrl!,
       colorBlendMode: colorBlendMode,
       color: color,
       image: data.getImageProvider(ref, true),
